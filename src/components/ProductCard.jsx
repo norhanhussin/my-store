@@ -4,13 +4,14 @@ import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/cartSlice';
 import useThemeStore from '../store/useThemeStore';
 import { useLanguage } from '../context/LanguageContext';
+import toast from 'react-hot-toast';
 
 function ProductCard({ id, title, price, thumbnail, category, rating, discountPercentage, stock }) {
   const dispatch  = useDispatch();
   const { theme } = useThemeStore();
   const { t }     = useLanguage();
 
-  const bg     = theme === 'dark' ? '#171717' : '#fff';
+  const bg     = theme === 'dark' ? '#1e1e1e' : '#fff';
   const bgImg  = theme === 'dark' ? '#0a0a0a' : '#fafafa';
   const border = theme === 'dark' ? '#262626' : '#f0f0f0';
   const text   = theme === 'dark' ? '#fff' : '#0a0a0a';
@@ -20,6 +21,18 @@ function ProductCard({ id, title, price, thumbnail, category, rating, discountPe
   const originalPrice = discountPercentage
     ? (price / (1 - discountPercentage / 100)).toFixed(2)
     : null;
+
+  const handleAddToCart = () => {
+    dispatch(addToCart({ id, title, price, image: thumbnail, category, rating, quantity: 1 }));
+    toast.success(`Added to cart!`, {
+      icon: '🛒',
+      style: {
+        backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#0a0a0a',
+        border: `1px solid ${theme === 'dark' ? '#262626' : '#f0f0f0'}`,
+      },
+    });
+  };
 
   return (
     <Card sx={{
@@ -93,8 +106,7 @@ function ProductCard({ id, title, price, thumbnail, category, rating, discountPe
                   '&:hover': { borderColor: text, color: text, backgroundColor: 'transparent' } }}>
             {t('details')}
           </Button>
-          <Button size="small" variant="contained"
-            onClick={() => dispatch(addToCart({ id, title, price, image: thumbnail, category, rating, quantity: 1 }))}
+          <Button size="small" variant="contained" onClick={handleAddToCart}
             sx={{ backgroundColor: text, color: bg, borderRadius: '6px', fontSize: '12px', px: 1.5,
                   '&:hover': { backgroundColor: theme === 'dark' ? '#e5e5e5' : '#262626' } }}>
             {t('addToCart')}

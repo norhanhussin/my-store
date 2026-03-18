@@ -1,4 +1,8 @@
-import { Box, Typography, Button, Skeleton, Card, CardContent } from '@mui/material';
+import {
+  Box, Typography, Button, Skeleton, Card,
+  CardContent, TextField, InputAdornment,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
@@ -9,7 +13,11 @@ function ProductSkeleton() {
   const { theme } = useThemeStore();
   const skBg = theme === 'dark' ? '#262626' : '#f5f5f5';
   return (
-    <Card sx={{ border: `1px solid ${theme === 'dark' ? '#262626' : '#f0f0f0'}`, boxShadow: 'none', borderRadius: 2, backgroundColor: theme === 'dark' ? '#171717' : '#fff' }}>
+    <Card sx={{
+      border: `1px solid ${theme === 'dark' ? '#262626' : '#f0f0f0'}`,
+      boxShadow: 'none', borderRadius: 2,
+      backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+    }}>
       <Skeleton variant="rectangular" height={200} sx={{ backgroundColor: skBg }} />
       <CardContent>
         <Skeleton width="40%" sx={{ backgroundColor: skBg, mb: 1 }} />
@@ -28,13 +36,18 @@ function ProductsList() {
   const { theme }  = useThemeStore();
   const { t }      = useLanguage();
 
-  const [products, setProducts]     = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState(null);
+  const [products, setProducts]       = useState([]);
+  const [categories, setCategories]   = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState(null);
+  const [search, setSearch]           = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching]     = useState(false);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const category = searchParams.get('category') || '';
 
+  // ===== Fetch Categories =====
   useEffect(() => {
     fetch('https://dummyjson.com/products/categories')
       .then(res => res.json())
@@ -42,6 +55,7 @@ function ProductsList() {
       .catch(() => {});
   }, []);
 
+  // ===== Fetch Products =====
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -54,14 +68,30 @@ function ProductsList() {
       .catch(err  => { setError(err.message); setLoading(false); });
   }, [category]);
 
-  const bg   = theme === 'dark' ? '#0a0a0a' : '#fff';
-  const border = theme === 'dark' ? '#262626' : '#f0f0f0';
-  const text = theme === 'dark' ? '#fff' : '#0a0a0a';
-  const muted = theme === 'dark' ? '#a3a3a3' : '#737373';
+  // ===== Search with Debounce =====
+  useEffect(() => {
+    if (!search.trim()) { setSearchResults([]); return; }
+    setSearching(true);
+    const timer = setTimeout(() => {
+      fetch(`https://dummyjson.com/products/search?q=${search}&limit=12`)
+        .then(res => res.json())
+        .then(data => { setSearchResults(data.products); setSearching(false); })
+        .catch(() => setSearching(false));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const displayedProducts = search.trim() ? searchResults : products;
+  const isLoading         = search.trim() ? searching : loading;
 
   const heading = category
     ? `${t('currBrowse')} ${category.charAt(0).toUpperCase() + category.slice(1)}`
     : t('allProducts');
+
+  const bg     = theme === 'dark' ? '#0a0a0a' : '#fff';
+  const border = theme === 'dark' ? '#262626' : '#f0f0f0';
+  const text   = theme === 'dark' ? '#fff' : '#0a0a0a';
+  const muted  = theme === 'dark' ? '#a3a3a3' : '#737373';
 
   return (
     <Box sx={{ backgroundColor: bg }}>
@@ -94,13 +124,40 @@ function ProductsList() {
         </Box>
       </Box>
 
+      {/* Search Bar */}
+      <Box sx={{ px: 4, py: 2, borderBottom: `1px solid ${border}`, backgroundColor: bg }}>
+        <TextField
+          fullWidth
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: muted, fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            maxWidth: 400,
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: bg, borderRadius: '8px',
+              '& fieldset': { borderColor: border },
+              '&:hover fieldset': { borderColor: text },
+              '& input': { color: text, fontSize: '14px' },
+            },
+          }}
+        />
+      </Box>
+
       {/* Toolbar */}
       <Box sx={{
         borderBottom: `1px solid ${border}`, px: 4, py: 1.5, backgroundColor: bg,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1,
       }}>
         <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-          <Button size="small" onClick={() => setSearchParams({})}
+          <Button size="small" onClick={() => { setSearchParams({}); setSearch(''); }}
             variant={category === '' ? 'contained' : 'outlined'}
             sx={category === ''
               ? { backgroundColor: text, color: bg, borderRadius: '6px', fontSize: '12px', '&:hover': { backgroundColor: theme === 'dark' ? '#e5e5e5' : '#262626' } }
@@ -113,7 +170,7 @@ function ProductsList() {
             const label = typeof cat === 'string' ? cat : cat.name;
             return (
               <Button key={val} size="small"
-                onClick={() => setSearchParams({ category: val })}
+                onClick={() => { setSearchParams({ category: val }); setSearch(''); }}
                 variant={category === val ? 'contained' : 'outlined'}
                 sx={category === val
                   ? { backgroundColor: text, color: bg, borderRadius: '6px', fontSize: '12px', '&:hover': { backgroundColor: theme === 'dark' ? '#e5e5e5' : '#262626' } }
@@ -125,17 +182,20 @@ function ProductsList() {
           })}
         </Box>
         <Typography sx={{ fontSize: '13px', color: muted }}>
-          <strong style={{ color: text }}>{loading ? '...' : products.length}</strong> {t('products')}
+          <strong style={{ color: text }}>{isLoading ? '...' : displayedProducts.length}</strong> {t('products')}
         </Typography>
       </Box>
 
       {/* Products */}
       <Box sx={{ px: 4, py: 2.5, backgroundColor: bg }}>
         <Typography sx={{ fontSize: '13px', color: muted, mb: 1.5 }}>
-          {t('showing')} <strong style={{ color: text }}>{heading}</strong>
+          {search.trim()
+            ? <>Searching: <strong style={{ color: text }}>"{search}"</strong></>
+            : <>{t('showing')} <strong style={{ color: text }}>{heading}</strong></>
+          }
         </Typography>
 
-        {error && (
+        {error && !search.trim() && (
           <Box sx={{ textAlign: 'center', py: 6 }}>
             <Typography sx={{ color: '#dc2626', mb: 2 }}>⚠ {error}</Typography>
             <Button variant="outlined" onClick={() => setSearchParams({})}
@@ -151,9 +211,15 @@ function ProductsList() {
             gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' },
             gap: 2,
           }}>
-            {loading
+            {isLoading
               ? Array(6).fill(0).map((_, i) => <ProductSkeleton key={i} />)
-              : products.map(product => <ProductCard key={product.id} {...product} />)
+              : displayedProducts.length === 0 && search.trim()
+                ? (
+                  <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 6 }}>
+                    <Typography sx={{ color: muted }}>No results for "{search}"</Typography>
+                  </Box>
+                )
+                : displayedProducts.map(product => <ProductCard key={product.id} {...product} />)
             }
           </Box>
         )}

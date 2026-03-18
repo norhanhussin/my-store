@@ -8,9 +8,10 @@ import useThemeStore from '../store/useThemeStore';
 import { useLanguage } from '../context/LanguageContext';
 import useAuthStore from '../store/useAuthStore';
 import Footer from './Footer';
+import toast from 'react-hot-toast';
 
 function MainLayout() {
-  const navigate = useNavigate();
+  const navigate                           = useNavigate();
   const { theme, toggleTheme }             = useThemeStore();
   const { t, language, toggleLanguage }    = useLanguage();
   const { token, logout }                  = useAuthStore();
@@ -37,8 +38,7 @@ function MainLayout() {
           {/* Language Toggle */}
           <Button onClick={toggleLanguage} sx={{
             color: muted, borderRadius: '8px', mr: 1, fontSize: '13px', fontWeight: 500,
-            border: `1px solid ${border}`,
-            '&:hover': { backgroundColor: hover },
+            border: `1px solid ${border}`, '&:hover': { backgroundColor: hover },
           }}>
             {language === 'en' ? 'عربي' : 'EN'}
           </Button>
@@ -72,7 +72,18 @@ function MainLayout() {
 
           {/* Logout */}
           {token && (
-            <Button onClick={() => { logout(); navigate('/login'); }}
+            <Button onClick={() => {
+              logout();
+              toast('Logged out successfully', {
+                icon: '👋',
+                style: {
+                  backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+                  color: theme === 'dark' ? '#fff' : '#0a0a0a',
+                  border: `1px solid ${theme === 'dark' ? '#262626' : '#f0f0f0'}`,
+                },
+              });
+              navigate('/login');
+            }}
               sx={{
                 ml: 1, color: '#dc2626', border: '1px solid #fecaca', borderRadius: '8px',
                 '&:hover': { backgroundColor: '#fef2f2' },

@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { removeFromCart, updateQuantity } from '../store/cartSlice';
 import useThemeStore from '../store/useThemeStore';
 import { useLanguage } from '../context/LanguageContext';
+import toast from 'react-hot-toast';
 
 function Cart() {
   const navigate   = useNavigate();
@@ -17,7 +18,7 @@ function Cart() {
   const { t }      = useLanguage();
 
   const bg     = theme === 'dark' ? '#0a0a0a' : '#fff';
-  const bgCard = theme === 'dark' ? '#171717' : '#fff';
+  const bgCard = theme === 'dark' ? '#1e1e1e' : '#fff';
   const bgImg  = theme === 'dark' ? '#0a0a0a' : '#fafafa';
   const border = theme === 'dark' ? '#262626' : '#f0f0f0';
   const text   = theme === 'dark' ? '#fff' : '#0a0a0a';
@@ -97,7 +98,17 @@ function Cart() {
               </Typography>
 
               <IconButton size="small"
-                onClick={() => dispatch(removeFromCart(item.id))}
+                onClick={() => {
+                  dispatch(removeFromCart(item.id));
+                  toast.error('Removed from cart', {
+                    icon: '🗑️',
+                    style: {
+                      backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+                      color: theme === 'dark' ? '#fff' : '#0a0a0a',
+                      border: `1px solid ${theme === 'dark' ? '#262626' : '#f0f0f0'}`,
+                    },
+                  });
+                }}
                 sx={{ color: muted, '&:hover': { color: '#dc2626', backgroundColor: '#fef2f2' } }}>
                 <DeleteOutlineIcon fontSize="small" />
               </IconButton>

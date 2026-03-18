@@ -5,17 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
 import useThemeStore from '../store/useThemeStore';
+import toast from 'react-hot-toast';
 
-// ===== 1. Zod Schema =====
 const schema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email'),
-  password: z
-    .string()
-    .min(1, 'Password is required')
-    .min(8, 'Password must be at least 8 characters'),
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email'),
+  password: z.string().min(1, 'Password is required').min(8, 'Password must be at least 8 characters'),
 });
 
 function Login() {
@@ -29,33 +23,32 @@ function Login() {
   const text   = theme === 'dark' ? '#fff' : '#0a0a0a';
   const sub    = theme === 'dark' ? '#a3a3a3' : '#737373';
 
-  // ===== 2. useForm + zodResolver =====
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(schema),
+    mode: 'onChange',
   });
 
-  // ===== 3. onSubmit =====
   const onSubmit = (data) => {
     console.log('Validated data:', data);
-
-    // Simulate API response بـ fake token
     const fakeToken = 'fake-jwt-token-123';
     login(fakeToken);
-
-    // روح الـ home بعد اللوجين
+    toast.success('Welcome back! 👋', {
+      style: {
+        backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#0a0a0a',
+        border: `1px solid ${theme === 'dark' ? '#262626' : '#f0f0f0'}`,
+      },
+    });
     navigate('/');
   };
 
   return (
     <Box sx={{ backgroundColor: bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Box sx={{
-        width: '100%', maxWidth: 420, mx: 'auto', px: 3,
-      }}>
-        {/* Header */}
+      <Box sx={{ width: '100%', maxWidth: 420, mx: 'auto', px: 3 }}>
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography variant="h5" fontWeight={500} sx={{ color: text, letterSpacing: '-0.5px' }}>
             my<span style={{ fontWeight: 700 }}>store</span>
@@ -65,7 +58,6 @@ function Login() {
           </Typography>
         </Box>
 
-        {/* Card */}
         <Box sx={{ backgroundColor: bgCard, border: `1px solid ${border}`, borderRadius: 3, p: 3 }}>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -75,24 +67,17 @@ function Login() {
                 <Typography sx={{ fontSize: '13px', fontWeight: 500, color: text, mb: 0.75 }}>
                   Email
                 </Typography>
-                <TextField
-                  fullWidth
-                  placeholder="you@example.com"
-                  type="email"
-                  size="small"
-                  {...register('email')}
-                  error={!!errors.email}
+                <TextField fullWidth placeholder="you@example.com" type="email" size="small"
+                  {...register('email')} error={!!errors.email}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      backgroundColor: bg,
-                      borderRadius: '8px',
+                      backgroundColor: bg, borderRadius: '8px',
                       '& fieldset': { borderColor: border },
                       '&:hover fieldset': { borderColor: text },
                       '& input': { color: text, fontSize: '14px' },
                     },
                   }}
                 />
-                {/* Error Message */}
                 {errors.email && (
                   <Typography sx={{ fontSize: '12px', color: '#dc2626', mt: 0.5 }}>
                     {errors.email.message}
@@ -105,24 +90,17 @@ function Login() {
                 <Typography sx={{ fontSize: '13px', fontWeight: 500, color: text, mb: 0.75 }}>
                   Password
                 </Typography>
-                <TextField
-                  fullWidth
-                  placeholder="••••••••"
-                  type="password"
-                  size="small"
-                  {...register('password')}
-                  error={!!errors.password}
+                <TextField fullWidth placeholder="••••••••" type="password" size="small"
+                  {...register('password')} error={!!errors.password}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      backgroundColor: bg,
-                      borderRadius: '8px',
+                      backgroundColor: bg, borderRadius: '8px',
                       '& fieldset': { borderColor: border },
                       '&:hover fieldset': { borderColor: text },
                       '& input': { color: text, fontSize: '14px' },
                     },
                   }}
                 />
-                {/* Error Message */}
                 {errors.password && (
                   <Typography sx={{ fontSize: '12px', color: '#dc2626', mt: 0.5 }}>
                     {errors.password.message}
@@ -130,23 +108,15 @@ function Login() {
                 )}
               </Box>
 
-              {/* Hint */}
               <Alert severity="info" sx={{ fontSize: '12px', py: 0 }}>
                 Use any email + password (8+ chars)
               </Alert>
 
-              {/* Submit */}
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                disabled={isSubmitting}
+              <Button type="submit" variant="contained" fullWidth disabled={isSubmitting}
                 sx={{
-                  backgroundColor: text, color: bg, borderRadius: '8px',
-                  py: 1.25, fontSize: '14px', fontWeight: 500,
+                  backgroundColor: text, color: bg, borderRadius: '8px', py: 1.25, fontSize: '14px', fontWeight: 500,
                   '&:hover': { backgroundColor: theme === 'dark' ? '#e5e5e5' : '#262626' },
-                }}
-              >
+                }}>
                 {isSubmitting ? 'Signing in...' : 'Sign in'}
               </Button>
 

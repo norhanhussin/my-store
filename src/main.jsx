@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createHashRouter, RouterProvider } from 'react-router-dom'; // ← غيري هنا
+import { createHashRouter, RouterProvider } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { Provider } from 'react-redux';
+import { Toaster } from 'react-hot-toast';
 import store from './store/store';
 import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -58,6 +59,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <LanguageProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              duration: 2000,
+              style: { borderRadius: '8px', fontSize: '14px' },
+            }}
+          />
           <RouterProvider router={router} />
         </ThemeProvider>
       </LanguageProvider>
