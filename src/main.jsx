@@ -1,17 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createHashRouter, RouterProvider } from 'react-router-dom'; // ← غيري هنا
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { Provider } from 'react-redux';
 import store from './store/store';
 import { LanguageProvider } from './context/LanguageContext';
-import ProtectedRoute from './components/ProtectedRoute';  // ← جديد
+import ProtectedRoute from './components/ProtectedRoute';
 
 import MainLayout     from './components/MainLayout';
 import ProductsList   from './pages/ProductsList';
 import ProductDetails from './pages/ProductDetails';
 import Cart           from './pages/Cart';
-import Login          from './pages/Login';                // ← جديد
+import Login          from './pages/Login';
 import NotFound       from './pages/NotFound';
 
 const theme = createTheme({
@@ -31,7 +31,7 @@ const theme = createTheme({
   },
 });
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: '/',
     element: <MainLayout />,
@@ -46,10 +46,10 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      { path: '*', element: <NotFound /> },
+      { path: 'login',       element: <Login /> },
+      { path: '*',           element: <NotFound /> },
     ],
   },
-  { path: '/login', element: <Login /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
